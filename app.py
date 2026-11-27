@@ -65,10 +65,13 @@ with st.sidebar:
     st.markdown(f"**Protocolo:** {meta['protocolo']} (random_state={meta['random_state']})")
     st.markdown("**Métricas no conjunto de teste**")
     m = meta["metricas_teste"]
-    c1, c2, c3 = st.columns(3)
-    c1.metric("ROC-AUC", f"{m['ROC-AUC']:.3f}")
-    c2.metric("PR-AUC", f"{m['PR-AUC']:.3f}")
-    c3.metric("Recall", f"{m['Recall']:.3f}")
+    # Uma métrica por linha: em colunas, a barra lateral estreita truncava os valores ("0....")
+    st.markdown(
+        f"| Métrica | Valor |\n|---|:---:|\n"
+        f"| ROC-AUC | **{m['ROC-AUC']:.3f}** |\n"
+        f"| PR-AUC | **{m['PR-AUC']:.3f}** |\n"
+        f"| Recall | **{m['Recall']:.3f}** |"
+    )
     st.caption(f"Limiar de decisão: {LIMIAR:.2f} · treinado em {meta['treinado_em']}")
     st.divider()
     st.markdown("**Versões das bibliotecas**")
