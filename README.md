@@ -187,7 +187,7 @@ O app usa o limiar 0,5, mas o banco pode baixá-lo para capturar mais inadimplen
 - O **pipeline inteiro** (limpeza + pré-processamento + modelo) é salvo com `joblib`, não só o estimador. O arquivo final tem cerca de 9 KB.
 - `modelo_meta.json` registra métricas, limiar, lista de cidades e as versões exatas das bibliotecas.
 - `features.py` é um módulo separado porque o `joblib` guarda apenas uma *referência* às funções do `FunctionTransformer`. O app precisa importar as mesmas funções usadas no treino.
-- O app Streamlit recebe os dados do cliente e mostra a **probabilidade de inadimplência**, a **faixa de risco** e o **comprometimento de renda**. A seção "Sobre o modelo", no fim da página, exibe as métricas e as versões das bibliotecas.
+- O app Streamlit recebe os dados do cliente e mostra a **probabilidade de inadimplência**, a **faixa de risco**, uma **régua** que compara a probabilidade com a média da carteira e com o limiar, a **recomendação** e o **comprometimento de renda**. A seção "Sobre o modelo", no fim da página, exibe as métricas e as versões das bibliotecas.
 
 Exemplo: um cliente digitado com `estado_civil = "solteiro "` e `prazo = 1` (em anos) é corrigido automaticamente pelo pipeline antes da predição.
 
@@ -217,6 +217,7 @@ risco-credito-lakehouse/
 ├── N3_Modelo_Preditivo_Inadimplencia.ipynb   # Notebook completo e já executado
 ├── features.py                               # Limpeza e engenharia de atributos (treino e app)
 ├── app.py                                    # Interface Streamlit
+├── .streamlit/config.toml                    # Tema visual do app (cores e fontes)
 ├── modelo_inadimplencia.joblib               # Pipeline treinado
 ├── modelo_meta.json                          # Métricas, limiar, cidades e versões
 ├── requirements.txt                          # Versões exatas do ambiente de treino

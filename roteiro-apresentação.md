@@ -214,8 +214,9 @@ Alunas: Maria A. Giuliari e Mariele Vieira · **Apresentação: 27/11/2026** · 
 2. No topo, clicar em **"Baixo risco"** → **Calcular risco** → 🟢 baixo risco.
    > "Cliente de 42 anos, empregada, casa própria, parcela pequena em relação à renda."
 3. No topo, clicar em **"Alto risco"** → **Calcular risco** → 🔴 alto risco.
-   > "Cliente de 23 anos, desempregado, aluguel, três dependentes e uma parcela maior que a renda."
-4. Apontar o **comprometimento da renda** e o **"risco vs. média"** da carteira.
+   > "Cliente de 23 anos, desempregado, aluguel, três dependentes e uma parcela que consome quase 90% da renda."
+4. Apontar a **régua de risco** (onde o cliente fica em relação à média da carteira e ao limiar), a **renda comprometida** e o **risco em relação à média**.
+5. Abrir **"Dados enviados ao modelo"**, no fim do parecer: é exatamente o que entra no pipeline salvo.
 
 > "Um último cuidado: arquivo pickle ou joblib **só de fonte confiável**, porque ele pode executar código ao ser carregado."
 
