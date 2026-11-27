@@ -28,94 +28,143 @@ ARQ_META = PASTA / "modelo_meta.json"
 st.set_page_config(page_title="Risco de Inadimplência", page_icon="💳", layout="wide")
 
 # ---------------------------------------------------------------------------
-# Estilo: escala de risco, régua e ajustes finos que o tema não cobre
+# Estilo
 # ---------------------------------------------------------------------------
+# Cada faixa de risco: (texto, fundo suave, cor do trilho da régua)
 CORES_RISCO = {
-    "baixo": ("#2E7D5B", "#E3F0E9"),     # (tinta, fundo)
-    "moderado": ("#B07A12", "#F6EDD9"),
-    "alto": ("#B23A3A", "#F6E3E1"),
+    "baixo": ("#23704F", "#E3F0E9", "#4E9C77"),
+    "moderado": ("#94650B", "#F6EDD9", "#D7A637"),
+    "alto": ("#A83434", "#F6E3E1", "#C9504F"),
 }
 
 st.html("""
 <style>
   :root {
-    --tinta: #12302F; --grafite: #4D5B5A; --linha: #C9D2CE; --papel: #F3F5F2;
+    --tinta: #12302F; --grafite: #4D5B5A; --linha: #D5DDD9; --papel: #F3F5F2;
+    --branco: #FFFFFF; --suave: #C5D8D3;
     --titulo: "Familjen Grotesk", "Public Sans", sans-serif;
+    --raio: 14px;
   }
-  .block-container { padding-top: 2.5rem; max-width: 1240px; }
-  h1 { letter-spacing: -0.02em; line-height: 1.05; }
-  h3 { margin-top: .5rem; }
+  .block-container { padding-top: 0; padding-bottom: 3rem; max-width: 1200px; }
 
-  .abertura { max-width: 62ch; color: var(--grafite); font-size: 1.05rem; line-height: 1.55;
-              margin: -.25rem 0 1.25rem; }
+  /* Barra do Streamlit transparente sobre a faixa escura */
+  [data-testid="stHeader"] { background: transparent; color: var(--branco); }
+  [data-testid="stHeader"] button { color: var(--branco); }
 
-  /* Parecer: o elemento de destaque da página */
-  .parecer { border-radius: 10px; padding: 1.5rem 1.5rem 1.25rem; background: var(--fundo);
-             color: var(--tinta); }
-  .parecer .faixa { font-family: var(--titulo); font-weight: 600; font-size: 1.05rem;
-                    color: var(--cor); margin: 0; }
+  /* ---- Cabeçalho: faixa verde-petróleo de ponta a ponta ---- */
+  .st-key-cabecalho { background: var(--tinta); box-shadow: 0 0 0 100vmax var(--tinta);
+                      clip-path: inset(0 -100vmax); padding: 4.25rem 0 2.5rem; margin-bottom: 2.25rem; }
+  .st-key-cabecalho h1 { color: var(--branco); letter-spacing: -0.02em; line-height: 1.05;
+                         padding: 0; }
+  .st-key-cabecalho .abertura { color: var(--suave); font-size: 1.05rem; line-height: 1.55;
+                                max-width: 60ch; margin: .6rem 0 0; }
+  .st-key-cabecalho .rotulo-exemplo { color: var(--suave); font-size: .9rem; margin: 0 0 .1rem; }
+  .st-key-cabecalho button { background: transparent; border: 1px solid rgba(255,255,255,.4);
+                             color: var(--branco); }
+  .st-key-cabecalho button p { color: var(--branco); }
+  .st-key-cabecalho button:hover { background: rgba(255,255,255,.1); border-color: var(--branco);
+                                   color: var(--branco); }
+  .st-key-cabecalho button:focus-visible { outline: 2px solid var(--branco); outline-offset: 2px; }
+
+  /* ---- Painéis: formulário e parecer lado a lado, mesma altura ---- */
+  [data-testid="stForm"] { background: var(--branco); border: 1px solid var(--linha);
+                           border-radius: var(--raio); padding: 1.75rem 1.75rem 1.5rem; }
+  [data-testid="stForm"] h3 { font-size: 1.05rem; font-weight: 600; color: var(--tinta);
+                              padding: 0; margin: 1.1rem 0 .1rem; }
+  [data-testid="stForm"] [data-testid="stElementContainer"]:first-child h3 { margin-top: 0; }
+  [data-testid="stNumberInputStepUp"], [data-testid="stNumberInputStepDown"] { display: none; }
+  [data-testid="stFormSubmitButton"] { margin-top: .9rem; }
+
+  [data-testid="stLayoutWrapper"]:has(> .st-key-lado_parecer) { flex: 1; }
+  .st-key-lado_parecer, .st-key-lado_parecer > [data-testid="stElementContainer"],
+  .st-key-lado_parecer [data-testid="stHtml"] { height: 100%; }
+  .st-key-lado_parecer > [data-testid="stElementContainer"] { flex: 1; }
+
+  /* Parecer */
+  .parecer { box-sizing: border-box; height: 100%; color: var(--tinta);
+             background: linear-gradient(var(--cor), var(--cor)) top / 100% 6px no-repeat, var(--branco);
+             border: 1px solid var(--linha); border-radius: var(--raio);
+             padding: 1.9rem 1.75rem 1.5rem; display: flex; flex-direction: column; }
+  .parecer .faixa { align-self: flex-start; margin: 0; padding: .3rem .75rem; border-radius: 99px;
+                    background: var(--fundo); color: var(--cor); font-weight: 600; font-size: .9rem; }
   .parecer .prob { font-family: var(--titulo); font-weight: 700; color: var(--cor);
-                   font-size: clamp(3.2rem, 6vw, 4.6rem); line-height: 1; margin: .35rem 0 .2rem;
+                   font-size: clamp(3.4rem, 6vw, 4.8rem); line-height: 1; margin: 1rem 0 .3rem;
                    font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
-  .parecer .prob-legenda { color: var(--grafite); margin: 0 0 1.4rem; font-size: .95rem; }
-  .parecer .recomendacao { font-size: 1rem; line-height: 1.5; margin: 1.4rem 0 0; }
+  .parecer .prob-legenda { color: var(--grafite); margin: 0 0 1.5rem; }
+  .parecer .recomendacao { line-height: 1.5; margin: 1.25rem 0 0; padding: .9rem 1rem;
+                           background: var(--papel); border-radius: 8px; }
 
   /* Régua de risco: 0% a 100%, com zonas, média da carteira e limiar */
-  .regua { position: relative; height: 4.6rem; margin: 0 .25rem; }
-  .regua .trilho { position: absolute; top: 1.6rem; left: 0; right: 0; height: .55rem;
-                   border-radius: 99px; overflow: hidden; display: flex; }
-  .regua .trilho span { height: 100%; opacity: .55; }
-  .regua .ponteiro { position: absolute; top: 0; width: 0; animation: desliza .9s cubic-bezier(.2,.8,.2,1); }
-  .regua .ponteiro::before { content: ""; position: absolute; left: -1px; top: .35rem; width: 3px;
-                             height: 2.1rem; background: var(--tinta); border-radius: 2px; }
-  .regua .ponteiro::after { content: ""; position: absolute; left: -.4rem; top: 0;
-                            border: .4rem solid transparent; border-top-color: var(--tinta); }
-  .regua .marca { position: absolute; top: 2.15rem; font-size: .78rem; color: var(--grafite);
-                  white-space: nowrap; line-height: 1.25; font-variant-numeric: tabular-nums; }
-  .regua .marca::before { content: ""; display: block; width: 1px; height: .55rem;
-                          background: var(--grafite); margin-bottom: .2rem; }
-  .regua .marca.direita { transform: translateX(-100%); text-align: right; }
-  .regua .marca.direita::before { margin-left: auto; }
+  .regua { position: relative; height: 5rem; margin: 0 .2rem; }
+  .regua .trilho { position: absolute; top: 1.6rem; left: 0; right: 0; height: .7rem;
+                   border-radius: 99px; overflow: hidden; display: flex; gap: 2px; }
+  .regua .ponteiro { position: absolute; top: 0; width: 0;
+                     animation: desliza .9s cubic-bezier(.2,.8,.2,1); }
+  .regua .ponteiro::before { content: ""; position: absolute; left: -1.5px; top: .45rem; width: 3px;
+                             height: 2.05rem; background: var(--tinta); border-radius: 2px; }
+  .regua .ponteiro::after { content: ""; position: absolute; left: -.45rem; top: 0;
+                            border: .45rem solid transparent; border-top-color: var(--tinta); }
+  .regua .marca { position: absolute; top: 2.75rem; font-size: .8rem; color: var(--grafite);
+                  white-space: nowrap; line-height: 1.3; font-variant-numeric: tabular-nums;
+                  transform: translateX(-50%); text-align: center; }
+  .regua .marca.inicio { transform: none; text-align: left; }
+  .regua .marca.fim { transform: translateX(-100%); text-align: right; }
   @keyframes desliza { from { left: 0; } }
   @media (prefers-reduced-motion: reduce) { .regua .ponteiro { animation: none; } }
 
   /* Números de apoio */
-  .apoio { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem 1.5rem; margin: 1.25rem 0 0;
-           padding: 1.1rem 0 0; border-top: 1px solid var(--linha); }
-  /* zera o recuo que o Streamlit aplica a listas */
-  .apoio, .ficha, .apoio dt, .apoio dd, .ficha dt, .ficha dd {
-    padding-inline: 0 !important; margin-inline: 0 !important; }
+  .apoio { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem; margin: 1.5rem 0 0; }
   .apoio dt { color: var(--grafite); font-size: .85rem; margin: 0; }
-  .apoio dd { margin: .1rem 0 0; font-family: var(--titulo); font-weight: 600; font-size: 1.35rem;
+  .apoio dd { margin: .15rem 0 0; font-family: var(--titulo); font-weight: 600; font-size: 1.4rem;
               font-variant-numeric: tabular-nums; }
 
-  /* Estado vazio do parecer */
-  .vazio { border: 1px dashed var(--linha); border-radius: 10px; padding: 2rem 1.5rem;
-           color: var(--grafite); line-height: 1.55; }
-  .vazio strong { color: var(--tinta); font-family: var(--titulo); font-size: 1.15rem;
-                  display: block; margin-bottom: .35rem; }
+  /* Dados enviados (recolhível, dentro do parecer) */
+  .enviados { margin-top: auto; padding-top: 1.25rem; }
+  .enviados summary { cursor: pointer; color: var(--grafite); font-size: .9rem;
+                      border-top: 1px solid var(--linha); padding-top: 1rem; }
+  .enviados summary:focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; }
+  .lista { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem 1.5rem; margin: .9rem 0 .75rem;
+           font-size: .9rem; }
+  .lista div { display: flex; justify-content: space-between; gap: .75rem;
+               border-bottom: 1px solid var(--papel); padding-bottom: .3rem; }
+  .lista dt { color: var(--grafite); }
+  .lista dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums;
+              white-space: nowrap; }
 
-  /* Formulário: seções separadas por um fio fino, campos sem os botões +/- */
-  [data-testid="stForm"] h3 { font-size: .95rem; font-weight: 600; color: var(--grafite);
-                              border-top: 1px solid var(--linha); padding: 1.25rem 0 .6rem;
-                              margin: .4rem 0 0; }
-  [data-testid="stNumberInputStepUp"], [data-testid="stNumberInputStepDown"] { display: none; }
-  [data-testid="stFormSubmitButton"] { margin-top: .75rem; }
+  /* Estado vazio */
+  .vazio { box-sizing: border-box; height: 100%; min-height: 20rem; display: flex;
+           flex-direction: column; justify-content: center; padding: 2rem 2.25rem;
+           border: 1.5px dashed var(--linha); border-radius: var(--raio);
+           color: var(--grafite); line-height: 1.6; }
+  .vazio strong { color: var(--tinta); font-family: var(--titulo); font-size: 1.3rem;
+                  margin-bottom: .4rem; }
+  .vazio p { margin: 0; max-width: 36ch; }
 
-  /* Sobre o modelo (rodapé) */
-  .rodape { border-top: 1px solid var(--linha); margin-top: 3rem; padding-top: 2rem; }
-  .rodape h2 { font-family: var(--titulo); font-size: 1.3rem; font-weight: 600; margin: 0 0 1.25rem;
-               padding: 0; }
-  .ficha { margin: 0 0 1.25rem; display: grid; gap: 1.25rem 2rem;
-           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-  .ficha dt { color: var(--grafite); font-size: .85rem; }
-  .ficha dd { margin: .15rem 0 0; line-height: 1.2; font-family: var(--titulo); font-weight: 600; font-size: 1.35rem;
-              font-variant-numeric: tabular-nums; }
-  .nota { color: var(--grafite); font-size: .9rem; line-height: 1.55; max-width: 72ch; margin: 0; }
+  /* ---- Rodapé: sobre o modelo ---- */
+  .rodape { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--linha);
+            display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem 3rem;
+            align-items: start; }
+  .rodape h2 { font-family: var(--titulo); font-size: 1.25rem; font-weight: 600;
+               margin: 0 0 .5rem; padding: 0; color: var(--tinta); }
+  .nota { color: var(--grafite); font-size: .875rem; line-height: 1.6; max-width: 62ch; margin: 0 0 .5rem; }
+  .metricas { display: flex; flex-wrap: wrap; gap: 1.25rem 2.25rem; margin: 0; }
+  .metricas dt { color: var(--grafite); font-size: .85rem; }
+  .metricas dd { margin: .15rem 0 0; font-family: var(--titulo); font-weight: 600; font-size: 1.5rem;
+                 font-variant-numeric: tabular-nums; color: var(--tinta); }
 
+  /* zera o recuo que o Streamlit aplica a listas */
+  .apoio, .lista, .metricas, .apoio dt, .apoio dd, .lista dt, .lista dd, .metricas dt, .metricas dd {
+    padding-inline: 0 !important; margin-inline: 0 !important; }
+
+  @media (max-width: 900px) {
+    .rodape { grid-template-columns: 1fr; }
+  }
   @media (max-width: 640px) {
     .block-container { padding-left: 1rem; padding-right: 1rem; }
-    .apoio { grid-template-columns: 1fr; }
+    .st-key-cabecalho { padding-top: 3.75rem; }
+    [data-testid="stForm"], .parecer { padding-left: 1.1rem; padding-right: 1.1rem; }
+    .lista { grid-template-columns: 1fr; }
+    .apoio dd { font-size: 1.2rem; }
   }
 </style>
 """)
@@ -172,17 +221,20 @@ if "cliente" not in st.session_state:
 # ---------------------------------------------------------------------------
 # Cabeçalho
 # ---------------------------------------------------------------------------
-st.title("Avaliação de risco de inadimplência")
-st.html('<p class="abertura">Preencha a solicitação de crédito e o modelo estima a chance de o '
-        'cliente atrasar mais de 90 dias. O resultado apoia a decisão do analista, '
-        'não a substitui.</p>')
-
-e0, e1, e2, _ = st.columns([1.3, 1, 1, 3], vertical_alignment="center")
-e0.markdown("Preencher com exemplo:")
-for col, (rotulo, dados) in zip((e1, e2), EXEMPLOS.items()):
-    if col.button(rotulo, width="stretch"):
-        st.session_state.cliente = dados
-        st.rerun()
+with st.container(key="cabecalho"):
+    h1, h2 = st.columns([2.1, 1], gap="large", vertical_alignment="bottom")
+    with h1:
+        st.title("Avaliação de risco de inadimplência")
+        st.html('<p class="abertura">Preencha a solicitação de crédito e o modelo estima a chance '
+                'de o cliente atrasar mais de 90 dias. O resultado apoia a decisão do analista, '
+                'não a substitui.</p>')
+    with h2:
+        st.html('<p class="rotulo-exemplo">Preencher com um exemplo</p>')
+        e1, e2 = st.columns(2)
+        for col, (rotulo, dados) in zip((e1, e2), EXEMPLOS.items()):
+            if col.button(rotulo, width="stretch", key=f"exemplo_{rotulo}"):
+                st.session_state.cliente = dados
+                st.rerun()
 
 c = st.session_state.cliente
 ESTADOS = ["Casado", "Solteiro", "Divorciado", "Viúvo"]
@@ -192,7 +244,7 @@ CIDADES = meta["cidades"]
 PRAZOS = [12, 24, 36, 48, 60]
 OPCOES_EMP = ["Sim", "Não", "Não informado"]
 
-esquerda, direita = st.columns([1.35, 1], gap="large")
+esquerda, direita = st.columns([1.3, 1], gap="large")
 
 # ---------------------------------------------------------------------------
 # Formulário
@@ -213,19 +265,19 @@ with esquerda:
         st.subheader("Moradia e renda")
         b1, b2, b3 = st.columns(3)
         tipo_moradia = b1.selectbox("Moradia", MORADIAS, index=MORADIAS.index(c["tipo_moradia"]))
-        mudou = b2.radio("Mudou-se no último ano?", ["Não", "Sim"],
-                         index=["Não", "Sim"].index(c["mudou_recentemente"]), horizontal=True)
-        num_veiculos = b3.number_input("Veículos", 0, 10, int(c["num_veiculos"]))
-        b4, b5 = st.columns([1, 2])
-        empregado = b4.selectbox("Está empregado?", OPCOES_EMP,
+        num_veiculos = b2.number_input("Veículos", 0, 10, int(c["num_veiculos"]))
+        empregado = b3.selectbox("Está empregado?", OPCOES_EMP,
                                  index=OPCOES_EMP.index(c["empregado"]))
-        renda = b5.number_input("Renda mensal (R$)", 0.0, 500000.0, float(c["renda_mensal"]),
-                                step=100.0)
+        b4, b5 = st.columns([1, 2])
+        renda = b4.number_input("Renda mensal (R$)", 0.0, 500000.0, float(c["renda_mensal"]),
+                                step=100.0, format="%.0f")
+        mudou = b5.radio("Mudou de endereço no último ano?", ["Não", "Sim"],
+                         index=["Não", "Sim"].index(c["mudou_recentemente"]), horizontal=True)
 
         st.subheader("Pedido de crédito")
         d1, d2 = st.columns([2, 1])
         valor = d1.number_input("Valor pedido (R$)", 100.0, 500000.0,
-                                float(c["valor_emprestimo"]), step=500.0)
+                                float(c["valor_emprestimo"]), step=500.0, format="%.0f")
         prazo = d2.selectbox("Prazo (meses)", PRAZOS, index=PRAZOS.index(int(c["prazo"])))
 
         enviar = st.form_submit_button("Calcular risco", type="primary", width="stretch")
@@ -237,35 +289,56 @@ with esquerda:
 def regua(prob: float) -> str:
     """Régua horizontal de 0% a 100% com as zonas de risco, a média da carteira e o limiar."""
     zonas = [(TAXA_BASE, "baixo"), (LIMIAR - TAXA_BASE, "moderado"), (1 - LIMIAR, "alto")]
-    trilho = "".join(f'<span style="width:{w:.1%};background:{CORES_RISCO[k][0]}"></span>'
+    trilho = "".join(f'<span style="flex:{w:.4f};background:{CORES_RISCO[k][2]}"></span>'
                      for w, k in zonas)
     return f"""
       <div class="regua" role="img"
            aria-label="Probabilidade de {pct(prob)}; média da carteira {pct(TAXA_BASE)}; limiar {pct(LIMIAR, 0)}">
         <div class="trilho">{trilho}</div>
         <div class="ponteiro" style="left:{min(prob, 1):.2%}"></div>
-        <div class="marca" style="left:{TAXA_BASE:.1%}">média da<br>carteira {pct(TAXA_BASE)}</div>
+        <div class="marca inicio" style="left:0">0%</div>
+        <div class="marca" style="left:{TAXA_BASE:.1%}">média<br>{pct(TAXA_BASE)}</div>
         <div class="marca" style="left:{LIMIAR:.1%}">limiar<br>{pct(LIMIAR, 0)}</div>
-        <div class="marca direita" style="left:100%">100%</div>
+        <div class="marca fim" style="left:100%">100%</div>
       </div>"""
 
 
-with direita:
+def dados_enviados(d: dict) -> str:
+    """Lista legível do que foi enviado ao modelo (no lugar da tabela técnica)."""
+    itens = [
+        ("Idade", f"{d['idade']} anos"), ("Sexo", d["sexo"]), ("Estado civil", d["estado_civil"]),
+        ("Escolaridade", d["escolaridade"]), ("Dependentes", d["dependentes"]),
+        ("Cidade", d["cidade"]), ("Moradia", d["tipo_moradia"]),
+        ("Mudou de endereço", d["mudou_recentemente"]), ("Veículos", d["num_veiculos"]),
+        ("Empregado", d["empregado"] or "Não informado"), ("Renda mensal", brl(d["renda_mensal"])),
+        ("Valor pedido", brl(d["valor_emprestimo"])), ("Prazo", f"{d['prazo']} meses"),
+    ]
+    linhas = "".join(f"<div><dt>{escape(k)}</dt><dd>{escape(str(v))}</dd></div>" for k, v in itens)
+    return f"""
+      <details class="enviados">
+        <summary>Dados enviados ao modelo</summary>
+        <dl class="lista">{linhas}</dl>
+        <p class="nota">O pipeline aplica sozinho as regras de limpeza, calcula o comprometimento
+        da renda, imputa faltantes e codifica as categorias, exatamente como no treino.</p>
+      </details>"""
+
+
+with direita, st.container(key="lado_parecer"):
     if not enviar:
         st.html("""
           <div class="vazio">
             <strong>O parecer aparece aqui</strong>
-            Confira os dados ao lado e clique em <em>Calcular risco</em>. Para ver o modelo em ação
-            sem digitar, use um dos exemplos acima.
+            <p>Confira os dados da solicitação e clique em <em>Calcular risco</em>. Para ver o
+            modelo em ação sem digitar, use um dos exemplos no topo da página.</p>
           </div>""")
     else:
-        novo = pd.DataFrame([{
+        entrada = {
             "idade": idade, "sexo": sexo, "estado_civil": estado_civil, "escolaridade": escolaridade,
             "renda_mensal": renda, "empregado": None if empregado == "Não informado" else empregado,
             "tipo_moradia": tipo_moradia, "mudou_recentemente": mudou, "num_veiculos": num_veiculos,
             "dependentes": dependentes, "cidade": cidade, "valor_emprestimo": valor, "prazo": prazo,
-        }])
-        prob = float(modelo.predict_proba(novo)[:, 1][0])
+        }
+        prob = float(modelo.predict_proba(pd.DataFrame([entrada]))[:, 1][0])
         parcela = valor / prazo
         comprometimento = parcela / renda if renda > 0 else None
 
@@ -278,7 +351,7 @@ with direita:
         else:
             faixa, titulo = "baixo", "Baixo risco"
             recomendacao = "Abaixo da média da carteira. Aprovar."
-        cor, fundo = CORES_RISCO[faixa]
+        cor, fundo, _ = CORES_RISCO[faixa]
 
         st.html(f"""
           <section class="parecer" style="--cor:{cor};--fundo:{fundo}" aria-live="polite">
@@ -291,36 +364,31 @@ with direita:
               <div><dt>Parcela estimada, sem juros</dt><dd>{brl(parcela)}</dd></div>
               <div><dt>Renda comprometida</dt>
                    <dd>{"sem renda" if comprometimento is None else pct(comprometimento)}</dd></div>
-              <div><dt>Risco em relação à média</dt><dd>{f"{prob / TAXA_BASE:.1f}".replace(".", ",")}×</dd></div>
+              <div><dt>Risco em relação à média</dt><dd>{dec(prob / TAXA_BASE, 1)}×</dd></div>
               <div><dt>Inadimplência média</dt><dd>{pct(TAXA_BASE)}</dd></div>
             </dl>
+            {dados_enviados(entrada)}
           </section>""")
-
-        with st.expander("Dados enviados ao modelo"):
-            st.dataframe(novo, hide_index=True, width="stretch")
-            st.caption("O pipeline aplica sozinho as regras de limpeza, cria `comprometimento` e "
-                       "`log_renda`, imputa faltantes e codifica as categorias, exatamente como "
-                       "no treino.")
 
 # ---------------------------------------------------------------------------
 # Sobre o modelo (aparece ao rolar a página)
 # ---------------------------------------------------------------------------
 m = meta["metricas_teste"]
+versoes = ", ".join(f"{k} {v}" for k, v in meta["versoes"].items())
 st.html(f"""
   <section class="rodape">
-    <h2>Sobre o modelo</h2>
-    <dl class="ficha">
-      <div><dt>Algoritmo</dt><dd>{escape(meta['modelo'])}</dd></div>
+    <div>
+      <h2>Sobre o modelo</h2>
+      <p class="nota">{escape(meta['modelo'])} treinada em {escape(meta['treinado_em'])}. Métricas
+      medidas no conjunto de teste ({escape(meta['protocolo'])}, random_state={meta['random_state']}).</p>
+      <p class="nota">Versões: {escape(versoes)}. Só carregue arquivos .joblib ou .pickle de fontes
+      confiáveis: ao abrir, eles podem executar código.</p>
+    </div>
+    <dl class="metricas">
       <div><dt>ROC-AUC</dt><dd>{dec(m['ROC-AUC'])}</dd></div>
       <div><dt>PR-AUC</dt><dd>{dec(m['PR-AUC'])}</dd></div>
       <div><dt>Recall</dt><dd>{dec(m['Recall'])}</dd></div>
-      <div><dt>Limiar de decisão</dt><dd>{pct(LIMIAR, 0)}</dd></div>
+      <div><dt>Limiar</dt><dd>{pct(LIMIAR, 0)}</dd></div>
       <div><dt>Inadimplência média</dt><dd>{pct(TAXA_BASE)}</dd></div>
     </dl>
-    <p class="nota">Métricas medidas no conjunto de teste ({escape(meta['protocolo'])},
-    random_state={meta['random_state']}). Modelo treinado em {escape(meta['treinado_em'])}.
-    Só carregue arquivos .joblib ou .pickle de fontes confiáveis: ao abrir, eles podem
-    executar código.</p>
   </section>""")
-with st.expander("Versões das bibliotecas"):
-    st.code("\n".join(f"{k}=={v}" for k, v in meta["versoes"].items()), language="text")

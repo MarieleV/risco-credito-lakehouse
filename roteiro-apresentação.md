@@ -211,9 +211,9 @@ Alunas: Maria A. Giuliari e Mariele Vieira · **Apresentação: 27/11/2026** · 
 
 **Demonstração passo a passo**
 1. Rolar até a seção **"Sobre o modelo"**, no fim da página: métricas do modelo, limiar e versões.
-2. Clicar em **"Carregar: Cliente de baixo risco"** → **Calcular risco** → 🟢 baixo risco.
+2. No topo, clicar em **"Baixo risco"** → **Calcular risco** → 🟢 baixo risco.
    > "Cliente de 42 anos, empregada, casa própria, parcela pequena em relação à renda."
-3. Clicar em **"Carregar: Cliente de alto risco"** → **Calcular risco** → 🔴 alto risco.
+3. No topo, clicar em **"Alto risco"** → **Calcular risco** → 🔴 alto risco.
    > "Cliente de 23 anos, desempregado, aluguel, três dependentes e uma parcela maior que a renda."
 4. Apontar o **comprometimento da renda** e o **"risco vs. média"** da carteira.
 
