@@ -200,7 +200,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-O app abre em `http://localhost:8501`. Em **"Preencher com exemplo"**, use os botões **"Baixo risco"** e **"Alto risco"** para ver o modelo funcionando.
+O app abre em `http://localhost:8501`. No topo da página, em **"Preencher com um exemplo"**, use os botões **"Baixo risco"** e **"Alto risco"** para ver o modelo funcionando.
 
 Para reproduzir o treino, execute o notebook `N3_Modelo_Preditivo_Inadimplencia.ipynb` (localmente ou no Google Colab).
 
