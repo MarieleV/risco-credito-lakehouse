@@ -95,12 +95,23 @@ st.html("""
   .vazio strong { color: var(--tinta); font-family: var(--titulo); font-size: 1.15rem;
                   display: block; margin-bottom: .35rem; }
 
-  /* Barra lateral */
-  .ficha { margin: 0 0 1rem; display: grid; grid-template-columns: 1fr auto; gap: .5rem 1rem;
-           align-items: baseline; }
-  .ficha dt { color: var(--grafite); font-size: .9rem; }
-  .ficha dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .nota { color: var(--grafite); font-size: .85rem; line-height: 1.5; }
+  /* Formulário: seções separadas por um fio fino, campos sem os botões +/- */
+  [data-testid="stForm"] h3 { font-size: .95rem; font-weight: 600; color: var(--grafite);
+                              border-top: 1px solid var(--linha); padding: 1.25rem 0 .6rem;
+                              margin: .4rem 0 0; }
+  [data-testid="stNumberInputStepUp"], [data-testid="stNumberInputStepDown"] { display: none; }
+  [data-testid="stFormSubmitButton"] { margin-top: .75rem; }
+
+  /* Sobre o modelo (rodapé) */
+  .rodape { border-top: 1px solid var(--linha); margin-top: 3rem; padding-top: 2rem; }
+  .rodape h2 { font-family: var(--titulo); font-size: 1.3rem; font-weight: 600; margin: 0 0 1.25rem;
+               padding: 0; }
+  .ficha { margin: 0 0 1.25rem; display: grid; gap: 1.25rem 2rem;
+           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .ficha dt { color: var(--grafite); font-size: .85rem; }
+  .ficha dd { margin: .15rem 0 0; line-height: 1.2; font-family: var(--titulo); font-weight: 600; font-size: 1.35rem;
+              font-variant-numeric: tabular-nums; }
+  .nota { color: var(--grafite); font-size: .9rem; line-height: 1.55; max-width: 72ch; margin: 0; }
 
   @media (max-width: 640px) {
     .block-container { padding-left: 1rem; padding-right: 1rem; }
@@ -113,6 +124,11 @@ st.html("""
 def brl(valor: float) -> str:
     """Formata em reais no padrão brasileiro: R$ 1.234,56."""
     return "R$ " + f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def dec(valor: float, casas: int = 3) -> str:
+    """Formata decimal com vírgula: 0,697."""
+    return f"{valor:.{casas}f}".replace(".", ",")
 
 
 def pct(valor: float, casas: int = 1) -> str:
@@ -154,29 +170,6 @@ if "cliente" not in st.session_state:
     st.session_state.cliente = EXEMPLOS["Baixo risco"]
 
 # ---------------------------------------------------------------------------
-# Barra lateral: informações do modelo
-# ---------------------------------------------------------------------------
-with st.sidebar:
-    st.subheader("Sobre o modelo")
-    m = meta["metricas_teste"]
-    st.html(f"""
-      <dl class="ficha">
-        <dt>Algoritmo</dt><dd>{escape(meta['modelo'])}</dd>
-        <dt>ROC-AUC</dt><dd>{m['ROC-AUC']:.3f}</dd>
-        <dt>PR-AUC</dt><dd>{m['PR-AUC']:.3f}</dd>
-        <dt>Recall</dt><dd>{m['Recall']:.3f}</dd>
-        <dt>Limiar de decisão</dt><dd>{pct(LIMIAR, 0)}</dd>
-        <dt>Inadimplência média</dt><dd>{pct(TAXA_BASE)}</dd>
-      </dl>
-      <p class="nota">Métricas medidas no conjunto de teste ({escape(meta['protocolo'])},
-      random_state={meta['random_state']}). Treinado em {escape(meta['treinado_em'])}.</p>
-    """)
-    with st.expander("Versões das bibliotecas"):
-        st.code("\n".join(f"{k}=={v}" for k, v in meta["versoes"].items()), language="text")
-    st.caption("Só carregue arquivos .joblib ou .pickle de fontes confiáveis: "
-               "ao abrir, eles podem executar código.")
-
-# ---------------------------------------------------------------------------
 # Cabeçalho
 # ---------------------------------------------------------------------------
 st.title("Avaliação de risco de inadimplência")
@@ -206,32 +199,34 @@ esquerda, direita = st.columns([1.35, 1], gap="large")
 # ---------------------------------------------------------------------------
 with esquerda:
     with st.form("solicitacao", border=False):
-        st.subheader("Cliente")
-        a1, a2 = st.columns(2)
+        # Grade única de 3 colunas; [1, 2] e [2, 1] ocupam 1 e 2 colunas dela.
+        st.subheader("Perfil")
+        a1, a2, a3 = st.columns(3)
         idade = a1.number_input("Idade", 18, 100, int(c["idade"]))
         sexo = a2.selectbox("Sexo", ["F", "M"], index=["F", "M"].index(c["sexo"]))
-        a3, a4 = st.columns(2)
         estado_civil = a3.selectbox("Estado civil", ESTADOS, index=ESTADOS.index(c["estado_civil"]))
+        a4, a5, a6 = st.columns(3)
         escolaridade = a4.selectbox("Escolaridade", ESCOLAS, index=ESCOLAS.index(c["escolaridade"]))
-        a5, a6 = st.columns(2)
-        cidade = a5.selectbox("Cidade (SC)", CIDADES, index=CIDADES.index(c["cidade"]))
-        tipo_moradia = a6.selectbox("Moradia", MORADIAS, index=MORADIAS.index(c["tipo_moradia"]))
-        a7, a8 = st.columns(2)
-        dependentes = a7.number_input("Dependentes", 0, 10, int(c["dependentes"]))
-        mudou = a8.radio("Mudou de endereço no último ano?", ["Não", "Sim"],
-                         index=["Não", "Sim"].index(c["mudou_recentemente"]), horizontal=True)
+        dependentes = a5.number_input("Dependentes", 0, 10, int(c["dependentes"]))
+        cidade = a6.selectbox("Cidade (SC)", CIDADES, index=CIDADES.index(c["cidade"]))
 
-        st.subheader("Renda e empréstimo")
-        b1, b2 = st.columns(2)
-        empregado = b1.selectbox("Está empregado?", OPCOES_EMP,
+        st.subheader("Moradia e renda")
+        b1, b2, b3 = st.columns(3)
+        tipo_moradia = b1.selectbox("Moradia", MORADIAS, index=MORADIAS.index(c["tipo_moradia"]))
+        mudou = b2.radio("Mudou-se no último ano?", ["Não", "Sim"],
+                         index=["Não", "Sim"].index(c["mudou_recentemente"]), horizontal=True)
+        num_veiculos = b3.number_input("Veículos", 0, 10, int(c["num_veiculos"]))
+        b4, b5 = st.columns([1, 2])
+        empregado = b4.selectbox("Está empregado?", OPCOES_EMP,
                                  index=OPCOES_EMP.index(c["empregado"]))
-        renda = b2.number_input("Renda mensal (R$)", 0.0, 500000.0, float(c["renda_mensal"]),
+        renda = b5.number_input("Renda mensal (R$)", 0.0, 500000.0, float(c["renda_mensal"]),
                                 step=100.0)
-        b3, b4, b5 = st.columns(3)
-        valor = b3.number_input("Valor pedido (R$)", 100.0, 500000.0,
+
+        st.subheader("Pedido de crédito")
+        d1, d2 = st.columns([2, 1])
+        valor = d1.number_input("Valor pedido (R$)", 100.0, 500000.0,
                                 float(c["valor_emprestimo"]), step=500.0)
-        prazo = b4.selectbox("Prazo (meses)", PRAZOS, index=PRAZOS.index(int(c["prazo"])))
-        num_veiculos = b5.number_input("Veículos", 0, 10, int(c["num_veiculos"]))
+        prazo = d2.selectbox("Prazo (meses)", PRAZOS, index=PRAZOS.index(int(c["prazo"])))
 
         enviar = st.form_submit_button("Calcular risco", type="primary", width="stretch")
 
@@ -306,3 +301,26 @@ with direita:
             st.caption("O pipeline aplica sozinho as regras de limpeza, cria `comprometimento` e "
                        "`log_renda`, imputa faltantes e codifica as categorias, exatamente como "
                        "no treino.")
+
+# ---------------------------------------------------------------------------
+# Sobre o modelo (aparece ao rolar a página)
+# ---------------------------------------------------------------------------
+m = meta["metricas_teste"]
+st.html(f"""
+  <section class="rodape">
+    <h2>Sobre o modelo</h2>
+    <dl class="ficha">
+      <div><dt>Algoritmo</dt><dd>{escape(meta['modelo'])}</dd></div>
+      <div><dt>ROC-AUC</dt><dd>{dec(m['ROC-AUC'])}</dd></div>
+      <div><dt>PR-AUC</dt><dd>{dec(m['PR-AUC'])}</dd></div>
+      <div><dt>Recall</dt><dd>{dec(m['Recall'])}</dd></div>
+      <div><dt>Limiar de decisão</dt><dd>{pct(LIMIAR, 0)}</dd></div>
+      <div><dt>Inadimplência média</dt><dd>{pct(TAXA_BASE)}</dd></div>
+    </dl>
+    <p class="nota">Métricas medidas no conjunto de teste ({escape(meta['protocolo'])},
+    random_state={meta['random_state']}). Modelo treinado em {escape(meta['treinado_em'])}.
+    Só carregue arquivos .joblib ou .pickle de fontes confiáveis: ao abrir, eles podem
+    executar código.</p>
+  </section>""")
+with st.expander("Versões das bibliotecas"):
+    st.code("\n".join(f"{k}=={v}" for k, v in meta["versoes"].items()), language="text")
