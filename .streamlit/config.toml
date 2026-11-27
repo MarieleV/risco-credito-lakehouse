@@ -1,0 +1,17 @@
+# Identidade visual do app (papel claro, tinta verde-petróleo, escala de risco própria).
+[theme]
+base = "light"
+primaryColor = "#1F4D4A"
+backgroundColor = "#F3F5F2"
+secondaryBackgroundColor = "#E6ECE8"
+textColor = "#12302F"
+borderColor = "#C9D2CE"
+showWidgetBorder = true
+baseRadius = "6px"
+font = "Public Sans:https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap"
+headingFont = "Familjen Grotesk:https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&display=swap"
+headingFontWeights = [700, 600, 600]
+headingFontSizes = ["2.4rem", "1.15rem", "1rem"]
+
+[theme.sidebar]
+backgroundColor = "#E6ECE8"
